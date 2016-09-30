@@ -56,6 +56,9 @@ fi
 PORTAGE_STABLE_OVERLAY="${REPO_ROOT}/src/third_party/portage-stable"
 CROSSDEV_OVERLAY="/usr/local/portage/crossdev"
 COREOS_OVERLAY="${REPO_ROOT}/src/third_party/coreos-overlay"
+if [[ ${FLAGS_toolchain_boards} == "ppc64le-usr" ]]; then
+    PPC64LE_OVERLAY="${REPO_ROOT}/src/third_party/ppc64le-overlay"
+fi
 COREOS_CONFIG="${COREOS_OVERLAY}/coreos/config"
 
 # PORTAGE_USERNAME may already be in the env but set just to be safe.
@@ -76,7 +79,28 @@ sudo chown "${PORTAGE_USERNAME}:portage" "${REPO_CACHE_DIR}/distfiles"
 sudo mkdir -p /etc/portage/repos.conf /var/lib/portage/pkgs
 sudo touch /etc/portage/make.conf.user
 
-sudo_clobber "/etc/portage/make.conf" <<EOF
+
+if [[ ${FLAGS_toolchain_boards} == "ppc64le-usr" ]]; then
+    sudo_clobber "/etc/portage/make.conf" <<EOF
+# Created by update_chroot
+PORTDIR="${PORTAGE_STABLE_OVERLAY}"
+PORTDIR_OVERLAY="${CROSSDEV_OVERLAY} ${COREOS_OVERLAY} ${PPC64LE_OVERLAY}"
+DISTDIR="${REPO_CACHE_DIR}/distfiles"
+PKGDIR="/var/lib/portage/pkgs"
+PORT_LOGDIR="/var/log/portage"
+PORTAGE_BINHOST="$(get_sdk_binhost)"
+PORTAGE_USERNAME="${PORTAGE_USERNAME}"
+MAKEOPTS="--jobs=${NUM_JOBS} --load-average=$((NUM_JOBS * 2))"
+
+# Generally there isn't any need to add packages to @world by default.
+# You can use --select to override this.
+EMERGE_DEFAULT_OPTS="--oneshot"
+
+# Allow the user to override or define additional settings.
+source "/etc/portage/make.conf.user"
+EOF
+else
+    sudo_clobber "/etc/portage/make.conf" <<EOF
 # Created by update_chroot
 PORTDIR="${PORTAGE_STABLE_OVERLAY}"
 PORTDIR_OVERLAY="${CROSSDEV_OVERLAY} ${COREOS_OVERLAY}"
@@ -94,8 +118,27 @@ EMERGE_DEFAULT_OPTS="--oneshot"
 # Allow the user to override or define additional settings.
 source "/etc/portage/make.conf.user"
 EOF
+fi
 
-sudo_clobber "/etc/portage/repos.conf/coreos.conf" <<EOF
+if [[ ${FLAGS_toolchain_boards} == "ppc64le-usr" ]]; then
+    sudo_clobber "/etc/portage/repos.conf/coreos.conf" <<EOF
+[DEFAULT]
+main-repo = portage-stable
+
+[gentoo]
+disabled = true
+
+[ppc64le]
+location = ${PPC64LE_OVERLAY}
+
+[coreos]
+location = ${COREOS_OVERLAY}
+
+[portage-stable]
+location = ${PORTAGE_STABLE_OVERLAY}
+EOF
+else
+    sudo_clobber "/etc/portage/repos.conf/coreos.conf" <<EOF
 [DEFAULT]
 main-repo = portage-stable
 
@@ -108,6 +151,7 @@ location = ${COREOS_OVERLAY}
 [portage-stable]
 location = ${PORTAGE_STABLE_OVERLAY}
 EOF
+fi
 
 # Automatically symlink any provided portage repo configurations into
 # the appropriate destination directory from "config/portage/repos".
@@ -143,7 +187,7 @@ if [[ -n $(sudo find /mnt/host/source/config/portage/repos \
   fi
 fi
 
-sudo eselect profile set --force "$(get_sdk_profile)"
+sudo eselect profile set --force "$(get_sdk_profile ${FLAGS_toolchain_boards})"
 
 # Create crossdev repo_name and metadata
 info "Setting up crossdev..."

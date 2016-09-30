@@ -1048,6 +1048,13 @@ setup_qemu_static() {
         die "Missing basic layout in target rootfs"
       fi
     ;;
+    ppc64le-usr)
+      if [[ -f "${root_fs_dir}/sbin/ldconfig" ]]; then
+        sudo cp /usr/bin/qemu-ppc64le "${root_fs_dir}"/usr/bin/qemu-ppc64le-static
+      else
+        die "Missing basic layout in target rootfs"
+      fi
+    ;;
     *) die "Unsupported arch" ;;
   esac
 }
@@ -1059,6 +1066,13 @@ clean_qemu_static() {
     arm64-usr)
       if [[ -f "${root_fs_dir}/usr/bin/qemu-aarch64-static" ]]; then
         sudo rm "${root_fs_dir}"/usr/bin/qemu-aarch64-static
+      else
+        die "File not found"
+      fi
+    ;;
+    ppc64le-usr)
+      if [[ -f "${root_fs_dir}/usr/bin/qemu-ppc64le-static" ]]; then
+        sudo rm "${root_fs_dir}"/usr/bin/qemu-ppc64le-static
       else
         die "File not found"
       fi

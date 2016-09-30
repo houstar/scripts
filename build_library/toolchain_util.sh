@@ -16,7 +16,7 @@ TOOLCHAIN_PKGS=(
 declare -A CROSS_PROFILES
 CROSS_PROFILES["x86_64-cros-linux-gnu"]="coreos:coreos/amd64/generic"
 CROSS_PROFILES["aarch64-cros-linux-gnu"]="coreos:coreos/arm64/generic"
-CROSS_PROFILES["powerpc64le-cros-linux-gnu"]="coreos:coreos/ppc64le/generic"
+CROSS_PROFILES["powerpc64le-cros-linux-gnu"]="ppc64le:coreos/ppc64le/generic"
 
 # Map board names to CHOSTs and portage profiles. This is the
 # definitive list, there is assorted code new and old that either
@@ -29,7 +29,7 @@ BOARD_CHOSTS["arm64-usr"]="aarch64-cros-linux-gnu"
 BOARD_PROFILES["arm64-usr"]="coreos:coreos/arm64/generic"
 
 BOARD_CHOSTS["ppc64le-usr"]="powerpc64le-cros-linux-gnu"
-BOARD_PROFILES["ppc64le-usr"]="coreos:coreos/ppc64le/generic"
+BOARD_PROFILES["ppc64le-usr"]="ppc64le:coreos/ppc64le/generic"
 
 BOARD_NAMES=( "${!BOARD_CHOSTS[@]}" )
 
@@ -163,7 +163,13 @@ get_sdk_arch() {
 }
 
 get_sdk_profile() {
-    echo "coreos:coreos/$(get_sdk_arch)/sdk"
+    local board=$1
+    if [[ ${board} == ppc64le-usr ]]; then
+       echo "ppc64le:coreos/$(get_sdk_arch)/sdk"
+    else
+       echo "coreos:coreos/$(get_sdk_arch)/sdk"
+    fi
+           
 }
 
 get_sdk_libdir() {

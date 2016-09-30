@@ -85,8 +85,8 @@ MASK_FILE=${MASK_DIR}/cros-workon
 UNMASK_FILE=${UNMASK_DIR}/cros-workon
 CHROME_ATOM=chromeos-base/chromeos-chrome
 
-mkdir -p "${WORKON_DIR}" || die "mkdir -p ${WORKON_DIR}"
-touch "${WORKON_FILE}" "${MASK_WORKON_FILE}" || \
+sudo mkdir -p "${WORKON_DIR}" || die "mkdir -p ${WORKON_DIR}"
+sudo touch "${WORKON_FILE}" "${MASK_WORKON_FILE}" || \
   die "touch ${WORKON_FILE} ${MASK_WORKON_FILE}"
 cmds=(
   "mkdir -p '${KEYWORDS_DIR}' '${MASK_DIR}' '${UNMASK_DIR}'"
