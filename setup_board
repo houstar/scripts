@@ -23,7 +23,7 @@ DEFINE_boolean usepkg "${FLAGS_TRUE}" \
   "Use binary packages when possible."
 DEFINE_boolean usepkgonly "${FLAGS_FALSE}" \
   "Only use/download binary packages."
-DEFINE_boolean getbinpkg "${FLAGS_FALSE}" \
+DEFINE_boolean getbinpkg "${FLAGS_TRUE}" \
   "Download binary packages from remote repository."
 DEFINE_string getbinpkgver "" \
   "Use binary packages from a specific version."
